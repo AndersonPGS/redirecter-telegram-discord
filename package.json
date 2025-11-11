@@ -1,0 +1,35 @@
+{
+  "name": "surebets",
+  "version": "1.0.0",
+  "description": "Bot Telegram para enviar mensagens para webhook do Discord",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup src",
+    "start": "node dist/index.js",
+    "lint": "eslint src --ext .ts,.js",
+    "lint:fix": "eslint src --ext .ts,.js --fix",
+    "format": "prettier --write src/**/*.{ts,js,json}",
+    "format:check": "prettier --check src/**/*.{ts,js,json}",
+    "check": "npm run lint && npm run format:check"
+  },
+  "keywords": [
+    "telegram",
+    "discord",
+    "webhook"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "telegram": "^2.19.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "prettier": "^3.3.3",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.6.3"
+  }
+}
