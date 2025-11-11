@@ -2,6 +2,10 @@
 
 Bot em TypeScript que recebe mensagens de um grupo específico do Telegram e envia para um webhook do Discord.
 
+## Pré Requisitos
+
+Instale o [NodeJS](https://nodejs.org/en/download/current) 👍
+
 ## Instalação
 
 1. Instale as dependências:
