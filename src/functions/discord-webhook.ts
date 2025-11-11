@@ -1,6 +1,12 @@
 import axios from "axios";
+import FormData from "form-data";
+import { config } from "../utils/config-loader";
 
-export async function sendToDiscord(message: string, username?: string) {
+export async function sendToDiscord(
+  message: string,
+  username?: string,
+  photoBuffer?: Buffer
+) {
   const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL || "";
 
   if (!discordWebhookUrl) {
@@ -10,13 +16,20 @@ export async function sendToDiscord(message: string, username?: string) {
 
   try {
     const embed: {
-      description: string;
+      title: string;
+      description?: string;
       color: number;
       author?: { name: string };
+      image?: { url: string };
     } = {
-      description: message,
+      title: config.discord.defaultTitle,
       color: 0x00aa00, // Cor verde para a borda do embed
     };
+
+    // Adiciona descrição apenas se tiver texto
+    if (message && message.trim()) {
+      embed.description = message;
+    }
 
     // Adiciona author apenas se tiver username
     if (username) {
@@ -25,9 +38,31 @@ export async function sendToDiscord(message: string, username?: string) {
       };
     }
 
-    await axios.post(discordWebhookUrl, {
-      embeds: [embed],
-    });
+    // Se tiver foto, envia como multipart/form-data
+    if (photoBuffer) {
+      const filename = "image.jpg";
+
+      // Adiciona a imagem no embed usando attachment://
+      embed.image = {
+        url: `attachment://${filename}`,
+      };
+
+      const formData = new FormData();
+      formData.append("payload_json", JSON.stringify({ embeds: [embed] }));
+      formData.append("file", photoBuffer, {
+        filename: filename,
+        contentType: "image/jpeg",
+      });
+
+      await axios.post(discordWebhookUrl, formData, {
+        headers: formData.getHeaders(),
+      });
+    } else {
+      // Se não tiver foto, envia apenas o embed
+      await axios.post(discordWebhookUrl, {
+        embeds: [embed],
+      });
+    }
 
     console.log("👾 Nova mensagem enviada para o Discord.");
   } catch (error) {

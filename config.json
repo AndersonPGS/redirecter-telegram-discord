@@ -1,12 +1,9 @@
 {
   "discord": {
-    "defaultUsername": "Telegram Bot",
-    "messageFormat": "**{username}**: {message}"
+    "defaultTitle": "Lucrando Sem Risco VIP"
   },
   "telegram": {
     "connectionRetries": 5,
-    "defaultSenderName": "Desconhecido",
-    "systemSenderName": "Sistema",
     "groupId": "-1001435153850"
   }
 }

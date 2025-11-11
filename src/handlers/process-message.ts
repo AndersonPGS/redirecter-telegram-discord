@@ -1,16 +1,14 @@
 import { NewMessageEvent } from "telegram/events/NewMessage";
 import { Api } from "telegram/tl";
+import { TelegramClient } from "telegram";
 import { sendToDiscord } from "../functions/discord-webhook";
 
 export async function handleProcessMessage(
   event: NewMessageEvent,
-  targetGroupId: bigint
+  targetGroupId: bigint,
+  client: TelegramClient
 ) {
   const message = event.message;
-
-  if (!message.message) {
-    return;
-  }
 
   const chatId = message.chatId;
 
@@ -27,8 +25,11 @@ export async function handleProcessMessage(
     chatIdBigInt === targetGroupId
   ) {
     const messageText = message.message || "";
+    const hasText = !!messageText.trim();
+    const hasMedia = !!message.media;
 
-    if (!messageText) {
+    // Ignora mensagens sem texto e sem mídia
+    if (!hasText && !hasMedia) {
       return;
     }
 
@@ -40,6 +41,24 @@ export async function handleProcessMessage(
       username = sender.username || sender.firstName || undefined;
     }
 
-    await sendToDiscord(messageText, username);
+    let photoBuffer: Buffer | undefined;
+
+    // Tenta baixar a mídia se existir (foto, vídeo, etc)
+    if (hasMedia) {
+      try {
+        // Verifica se é uma foto
+        if (message.media instanceof Api.MessageMediaPhoto) {
+          const downloaded = await client.downloadMedia(message, {});
+          if (downloaded instanceof Buffer) {
+            photoBuffer = downloaded;
+          }
+        }
+      } catch (error) {
+        console.error("❌ Erro ao baixar mídia:", error);
+      }
+    }
+
+    // Envia para Discord mesmo se não tiver texto, desde que tenha foto
+    await sendToDiscord(messageText, username, photoBuffer);
   }
 }

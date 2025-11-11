@@ -3,18 +3,11 @@ import * as path from "path";
 
 export interface Config {
   discord: {
-    defaultUsername: string;
-    messageFormat: string;
+    defaultTitle: string;
   };
   telegram: {
     connectionRetries: number;
-    defaultSenderName: string;
-    systemSenderName: string;
     groupId: string;
-  };
-  app: {
-    name: string;
-    version: string;
   };
 }
 

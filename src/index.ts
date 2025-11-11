@@ -59,7 +59,8 @@ async function main() {
     console.log(`🔍 Monitorando grupo (${targetGroupId})`);
 
     client.addEventHandler(
-      (event: NewMessageEvent) => handleProcessMessage(event, targetGroupId),
+      (event: NewMessageEvent) =>
+        handleProcessMessage(event, targetGroupId, client),
       new NewMessage({})
     );
   }
