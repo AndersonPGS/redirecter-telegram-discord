@@ -4,6 +4,6 @@
   },
   "telegram": {
     "connectionRetries": 5,
-    "groupId": "-1001435153850"
+    "groupId": ""
   }
 }
