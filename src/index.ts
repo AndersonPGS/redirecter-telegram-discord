@@ -5,7 +5,7 @@ import { NewMessageEvent } from "telegram/events/NewMessage";
 import dotenv from "dotenv";
 
 import { config } from "./utils/config-loader";
-import { isValidGroupId } from "./utils/validation";
+import { hasValidGroupIds } from "./utils/validation";
 import { handleDiscoverGroup } from "./handlers/discover-group";
 import { handleProcessMessage } from "./handlers/process-message";
 
@@ -21,8 +21,8 @@ if (!apiId || !apiHash || !apiPhoneNumber) {
   process.exit(1);
 }
 
-const groupId = config.telegram.groupId;
-const hasGroupId = isValidGroupId(groupId);
+const groupIds = config.telegram.groupIds;
+const hasGroupIds = hasValidGroupIds(groupIds);
 
 const stringSession = new StoreSession("session_tg");
 
@@ -48,19 +48,27 @@ async function main() {
 
   console.log("🤖 Cliente conectado.");
 
-  if (!hasGroupId) {
+  if (!hasGroupIds) {
     console.log("");
     console.log("🔍 Descobrindo grupos...");
-    console.log("⚙️  Configure groupId em config.json após identificar o ID.");
+    console.log(
+      "⚙️  Configure groupIds em config.json após identificar os IDs."
+    );
 
     client.addEventHandler(handleDiscoverGroup, new NewMessage({}));
   } else {
-    const targetGroupId = BigInt(groupId);
-    console.log(`🔍 Monitorando grupo (${targetGroupId})`);
+    const targetGroupIds = groupIds
+      .filter((id) => id && id.trim() !== "")
+      .map((id) => BigInt(id));
+
+    console.log(`🔍 Monitorando ${targetGroupIds.length} grupo(s):`);
+    targetGroupIds.forEach((id) => {
+      console.log(`   - ${id}`);
+    });
 
     client.addEventHandler(
       (event: NewMessageEvent) =>
-        handleProcessMessage(event, targetGroupId, client),
+        handleProcessMessage(event, targetGroupIds, client),
       new NewMessage({})
     );
   }

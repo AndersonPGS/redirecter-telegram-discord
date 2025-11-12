@@ -5,7 +5,7 @@ import { sendToDiscord } from "../functions/discord-webhook";
 
 export async function handleProcessMessage(
   event: NewMessageEvent,
-  targetGroupId: bigint,
+  targetGroupIds: bigint[],
   client: TelegramClient
 ) {
   const message = event.message;
@@ -17,13 +17,18 @@ export async function handleProcessMessage(
   }
 
   const chatIdBigInt = BigInt(chatId.toString());
-  const targetId = targetGroupId < 0n ? targetGroupId : -targetGroupId;
 
-  if (
-    chatIdBigInt === targetId ||
-    chatIdBigInt === -targetId ||
-    chatIdBigInt === targetGroupId
-  ) {
+  // Verifica se o chatId está na lista de grupos monitorados
+  const isTargetGroup = targetGroupIds.some((targetGroupId) => {
+    const targetId = targetGroupId < 0n ? targetGroupId : -targetGroupId;
+    return (
+      chatIdBigInt === targetId ||
+      chatIdBigInt === -targetId ||
+      chatIdBigInt === targetGroupId
+    );
+  });
+
+  if (isTargetGroup) {
     const messageText = message.message || "";
     const hasText = !!messageText.trim();
     const hasMedia = !!message.media;

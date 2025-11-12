@@ -7,7 +7,7 @@ export interface Config {
   };
   telegram: {
     connectionRetries: number;
-    groupId: string;
+    groupIds: string[];
   };
 }
 

@@ -10,3 +10,9 @@ export function isValidGroupId(id: string): boolean {
   }
 }
 
+export function hasValidGroupIds(groupIds: string[]): boolean {
+  if (!Array.isArray(groupIds) || groupIds.length === 0) {
+    return false;
+  }
+  return groupIds.some((id) => isValidGroupId(id));
+}

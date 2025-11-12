@@ -1,6 +1,6 @@
 # Surebets - Telegram para Discord Webhook
 
-Bot em TypeScript que recebe mensagens de um grupo específico do Telegram e envia para um webhook do Discord.
+Bot em TypeScript que recebe mensagens de um ou mais grupos do Telegram e envia para um webhook do Discord.
 
 ## Pré Requisitos
 
@@ -25,8 +25,8 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url
 ```
 
 2.1 Configure também o arquivo de `config.json`
-`"defaultTitle": ""` É o título da mensagem que será enviada para o Discord
-`"groupId": ""` Deixe em branco e inicialize o projeto pela primeira vez para receber os IDs dos grupos que estão enviando mensagens, ao descobrir o ID do grupo que deseja monitorar, coloque-o aqui.
+- `"defaultTitle": ""` É o título da mensagem que será enviada para o Discord
+- `"groupIds": []` Deixe como array vazio e inicialize o projeto pela primeira vez para receber os IDs dos grupos que estão enviando mensagens. Ao descobrir os IDs dos grupos que deseja monitorar, adicione-os ao array. Exemplo: `"groupIds": ["-1001234567890", "-1009876543210"]`
 
 ## Como obter as credenciais
 
