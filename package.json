@@ -4,7 +4,7 @@
   "description": "Bot Telegram para enviar mensagens para webhook do Discord",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "ts-node src/index.ts",
     "build": "tsup src",
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts,.js",
@@ -31,7 +31,7 @@
     "@types/node": "^22.7.5",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
-    "tsx": "^4.20.6",
+    "tsup": "^8.5.0",
     "typescript": "^5.6.3"
   }
 }
