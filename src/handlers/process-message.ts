@@ -29,7 +29,52 @@ export async function handleProcessMessage(
   });
 
   if (isTargetGroup) {
-    const messageText = message.message || "";
+    // Extrai o texto completo da mensagem, incluindo links das entidades
+    let messageText = message.message || "";
+
+    // Se houver entidades (como links), processa para incluir URLs completos
+    if (message.entities && message.entities.length > 0) {
+      const rawText = messageText;
+      // Filtra apenas entidades TextUrl (links com texto customizado)
+      const textUrlEntities = message.entities
+        .filter(
+          (e): e is Api.MessageEntityTextUrl =>
+            e instanceof Api.MessageEntityTextUrl && !!e.url
+        )
+        .sort((a, b) => (a.offset || 0) - (b.offset || 0));
+
+      // Reconstrói o texto substituindo TextUrl entities por formato markdown do Discord
+      if (textUrlEntities.length > 0) {
+        const parts: string[] = [];
+        let lastIndex = 0;
+
+        for (const entity of textUrlEntities) {
+          const offset = entity.offset || 0;
+          const length = entity.length || 0;
+          const linkText = rawText.substring(offset, offset + length);
+
+          // Adiciona o texto antes desta entidade
+          if (offset > lastIndex) {
+            parts.push(rawText.substring(lastIndex, offset));
+          }
+
+          // Adiciona o link em formato markdown do Discord: [texto](url)
+          if (entity.url) {
+            parts.push(`[${linkText}](${entity.url})`);
+          }
+
+          lastIndex = offset + length;
+        }
+
+        // Adiciona o texto restante após a última entidade
+        if (lastIndex < rawText.length) {
+          parts.push(rawText.substring(lastIndex));
+        }
+
+        messageText = parts.join("");
+      }
+    }
+
     const hasText = !!messageText.trim();
     const hasMedia = !!message.media;
 
