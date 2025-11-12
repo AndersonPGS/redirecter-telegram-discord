@@ -22,7 +22,7 @@ export async function sendToDiscord(
       author: { name: string };
       image?: { url: string };
     } = {
-      color: 0x00aa00, // Cor verde para a borda do embed
+      color: 3407712, // Cor verde para a borda do embed
       author: {
         name: username || config.discord.defaultTitle,
       },
