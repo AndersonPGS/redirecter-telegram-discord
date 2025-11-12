@@ -92,8 +92,9 @@ export async function handleProcessMessage(
     }
 
     let photoBuffer: Buffer | undefined;
+    let mimeType: string | undefined;
 
-    // Tenta baixar a mídia se existir (foto, vídeo, etc)
+    // Tenta baixar a mídia se existir (foto, figurinha, etc)
     if (hasMedia) {
       try {
         // Verifica se é uma foto
@@ -101,6 +102,22 @@ export async function handleProcessMessage(
           const downloaded = await client.downloadMedia(message, {});
           if (downloaded instanceof Buffer) {
             photoBuffer = downloaded;
+            mimeType = "image/jpeg";
+          }
+        }
+        // Verifica se é uma figurinha (sticker) - MessageMediaDocument com mimeType image/webp
+        else if (message.media instanceof Api.MessageMediaDocument) {
+          const document = message.media.document;
+          if (document instanceof Api.Document) {
+            // Verifica se é uma imagem (figurinha geralmente é webp)
+            const isImage = document.mimeType?.startsWith("image/");
+            if (isImage && document.mimeType) {
+              const downloaded = await client.downloadMedia(message, {});
+              if (downloaded instanceof Buffer) {
+                photoBuffer = downloaded;
+                mimeType = document.mimeType;
+              }
+            }
           }
         }
       } catch (error) {
@@ -109,6 +126,6 @@ export async function handleProcessMessage(
     }
 
     // Envia para Discord mesmo se não tiver texto, desde que tenha foto
-    await sendToDiscord(messageText, username, photoBuffer);
+    await sendToDiscord(messageText, username, photoBuffer, mimeType);
   }
 }

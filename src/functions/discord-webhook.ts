@@ -5,7 +5,8 @@ import { config } from "../utils/config-loader";
 export async function sendToDiscord(
   message: string,
   username?: string,
-  photoBuffer?: Buffer
+  photoBuffer?: Buffer,
+  mimeType?: string
 ) {
   const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL || "";
 
@@ -34,7 +35,16 @@ export async function sendToDiscord(
 
     // Se tiver foto, envia como multipart/form-data
     if (photoBuffer) {
-      const filename = "image.jpg";
+      // Determina o filename e contentType baseado no mimeType
+      const contentType = mimeType || "image/jpeg";
+      let filename = "image.jpg";
+      if (contentType === "image/webp") {
+        filename = "image.webp";
+      } else if (contentType === "image/png") {
+        filename = "image.png";
+      } else if (contentType === "image/gif") {
+        filename = "image.gif";
+      }
 
       // Adiciona a imagem no embed usando attachment://
       embed.image = {
@@ -45,7 +55,7 @@ export async function sendToDiscord(
       formData.append("payload_json", JSON.stringify({ embeds: [embed] }));
       formData.append("file", photoBuffer, {
         filename: filename,
-        contentType: "image/jpeg",
+        contentType: contentType,
       });
 
       await axios.post(discordWebhookUrl, formData, {
