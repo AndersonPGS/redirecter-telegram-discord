@@ -16,26 +16,20 @@ export async function sendToDiscord(
 
   try {
     const embed: {
-      title: string;
       description?: string;
       color: number;
-      author?: { name: string };
+      author: { name: string };
       image?: { url: string };
     } = {
-      title: config.discord.defaultTitle,
       color: 0x00aa00, // Cor verde para a borda do embed
+      author: {
+        name: username || config.discord.defaultTitle,
+      },
     };
 
     // Adiciona descrição apenas se tiver texto
     if (message && message.trim()) {
       embed.description = message;
-    }
-
-    // Adiciona author apenas se tiver username
-    if (username) {
-      embed.author = {
-        name: username,
-      };
     }
 
     // Se tiver foto, envia como multipart/form-data
