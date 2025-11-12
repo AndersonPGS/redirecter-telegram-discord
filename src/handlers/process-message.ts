@@ -91,6 +91,15 @@ export async function handleProcessMessage(
       username = sender.username || sender.firstName || undefined;
     }
 
+    // Obtém o nome do grupo
+    const chat = await message.getChat();
+    let groupName: string | undefined;
+    if (chat instanceof Api.Chat) {
+      groupName = chat.title || undefined;
+    } else if (chat instanceof Api.Channel) {
+      groupName = chat.title || undefined;
+    }
+
     let photoBuffer: Buffer | undefined;
     let mimeType: string | undefined;
 
@@ -126,6 +135,12 @@ export async function handleProcessMessage(
     }
 
     // Envia para Discord mesmo se não tiver texto, desde que tenha foto
-    await sendToDiscord(messageText, username, photoBuffer, mimeType);
+    await sendToDiscord(
+      messageText,
+      username,
+      photoBuffer,
+      mimeType,
+      groupName
+    );
   }
 }

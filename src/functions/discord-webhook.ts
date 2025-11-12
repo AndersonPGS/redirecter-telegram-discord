@@ -6,7 +6,8 @@ export async function sendToDiscord(
   message: string,
   username?: string,
   photoBuffer?: Buffer,
-  mimeType?: string
+  mimeType?: string,
+  groupName?: string
 ) {
   const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL || "";
 
@@ -16,6 +17,16 @@ export async function sendToDiscord(
   }
 
   try {
+    // Formata o nome do author: "username - groupName" ou apenas um deles
+    let authorName = config.discord.defaultTitle;
+    if (username && groupName) {
+      authorName = `${username} - ${groupName}`;
+    } else if (username) {
+      authorName = username;
+    } else if (groupName) {
+      authorName = groupName;
+    }
+
     const embed: {
       description?: string;
       color: number;
@@ -24,7 +35,7 @@ export async function sendToDiscord(
     } = {
       color: 3407712, // Cor verde para a borda do embed
       author: {
-        name: username || config.discord.defaultTitle,
+        name: authorName,
       },
     };
 
