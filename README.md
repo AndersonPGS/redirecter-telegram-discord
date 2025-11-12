@@ -2,11 +2,22 @@
 
 Bot em TypeScript que recebe mensagens de um ou mais grupos do Telegram e envia para um webhook do Discord.
 
-## Pré Requisitos
+## 🚀 Instalação Rápida (Para Não Programadores)
+
+**Quer uma instalação super simples?** Veja o arquivo **[INSTRUCOES.md](INSTRUCOES.md)** com um guia passo a passo detalhado!
+
+**Resumo rápido:**
+1. Instale o [Node.js](https://nodejs.org/) (versão LTS)
+2. Execute `setup.bat` (duplo clique)
+3. Configure o arquivo `.env` (copie do `env.example`)
+4. Configure o arquivo `config.json`
+5. Execute `run.bat` para iniciar o bot
+
+## 📋 Pré Requisitos
 
 Instale o [NodeJS](https://nodejs.org/en/download/current) 👍
 
-## Instalação
+## 🔧 Instalação Manual (Para Desenvolvedores)
 
 1. Instale as dependências:
 
@@ -42,20 +53,26 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url
 2. Integrações > Webhooks
 3. Crie um novo webhook e copie a URL
 
-## Uso
+## ▶️ Uso
 
-### Desenvolvimento
+### Modo Simples (Windows)
+
+**Duplo clique em `run.bat`** - O script verifica tudo automaticamente e inicia o bot.
+
+### Modo Desenvolvimento
 
 ```bash
 npm run dev
 ```
 
-### Produção
+### Modo Produção
 
 ```bash
 npm run build
 npm start
 ```
+
+**Ou simplesmente execute `run.bat`** após a instalação.
 
 ## Formatação de código
 
