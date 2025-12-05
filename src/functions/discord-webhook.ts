@@ -66,11 +66,15 @@ export async function sendToDiscord(
     let descriptionParts: string[] = [];
     
     if (repliedMessageInfo) {
-      const repliedAuthorText = repliedMessageInfo.author 
-        ? `${repliedMessageInfo.author}: ` 
-        : "";
-      // Formata como código para parecer uma citação/marcação
-      descriptionParts.push(`\`\`\`YAML\n${repliedAuthorText}${repliedMessageInfo.text}\`\`\``);
+      // Usa 'diff' para destacar o nome do usuário (linhas com + ficam verdes no Discord)
+      // O nome do usuário fica destacado em verde, a mensagem fica normal
+      if (repliedMessageInfo.author) {
+        const formattedText = `+ ${repliedMessageInfo.author}\n${repliedMessageInfo.text}`;
+        descriptionParts.push(`\`\`\`diff\n${formattedText}\n\`\`\``);
+      } else {
+        // Se não tiver autor, usa formato simples
+        descriptionParts.push(`\`\`\`\n${repliedMessageInfo.text}\n\`\`\``);
+      }
     }
 
     // Adiciona a mensagem atual após a citação
