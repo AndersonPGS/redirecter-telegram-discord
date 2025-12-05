@@ -9,7 +9,9 @@ export async function sendToDiscord(
   photoBuffer?: Buffer,
   mimeType?: string,
   groupName?: string,
-  repliedMessageInfo?: { text: string; author?: string }
+  repliedMessageInfo?: { text: string; author?: string },
+  userProfilePhotoBuffer?: Buffer,
+  userProfilePhotoMimeType?: string
 ) {
   if (!webhookUrl || webhookUrl.trim() === "") {
     console.error("❌ Webhook URL não configurado para este grupo");
@@ -30,7 +32,7 @@ export async function sendToDiscord(
     const embed: {
       description?: string;
       color: number;
-      author: { name: string };
+      author: { name: string; icon_url?: string };
       image?: { url: string };
     } = {
       color: 3407712, // Cor verde para a borda do embed
@@ -38,6 +40,27 @@ export async function sendToDiscord(
         name: authorName,
       },
     };
+
+    // Adiciona foto do perfil do usuário no author
+    if (userProfilePhotoBuffer) {
+      // Se tiver foto de perfil, usa como attachment
+      embed.author.icon_url = "attachment://profile_photo.jpg";
+    } else if (username) {
+      // Se não tiver foto, usa placeholder com iniciais do usuário
+      // Remove caracteres especiais e pega as iniciais
+      const initials = username
+        .split(/[\s\-_]+/)
+        .map(word => word.charAt(0).toUpperCase())
+        .filter(char => /[A-Z0-9]/.test(char))
+        .slice(0, 2)
+        .join("");
+      
+      if (initials) {
+        // Usa UI Avatars API para gerar avatar com iniciais
+        const encodedName = encodeURIComponent(username);
+        embed.author.icon_url = `https://ui-avatars.com/api/?name=${encodedName}&size=128&background=random&color=fff&bold=true&length=${initials.length}`;
+      }
+    }
 
     // Monta a descrição: se for resposta, coloca a mensagem respondida primeiro (formatada como código)
     let descriptionParts: string[] = [];
@@ -63,30 +86,44 @@ export async function sendToDiscord(
       embed.description = descriptionParts.join("");
     }
 
-    // Se tiver foto, envia como multipart/form-data
-    if (photoBuffer) {
-      // Determina o filename e contentType baseado no mimeType
-      const contentType = mimeType || "image/jpeg";
-      let filename = "image.jpg";
-      if (contentType === "image/webp") {
-        filename = "image.webp";
-      } else if (contentType === "image/png") {
-        filename = "image.png";
-      } else if (contentType === "image/gif") {
-        filename = "image.gif";
+    // Se tiver foto da mensagem ou foto do perfil, envia como multipart/form-data
+    if (photoBuffer || userProfilePhotoBuffer) {
+      const formData = new FormData();
+      
+      // Adiciona foto da mensagem se existir
+      if (photoBuffer) {
+        // Determina o filename e contentType baseado no mimeType
+        const contentType = mimeType || "image/jpeg";
+        let filename = "image.jpg";
+        if (contentType === "image/webp") {
+          filename = "image.webp";
+        } else if (contentType === "image/png") {
+          filename = "image.png";
+        } else if (contentType === "image/gif") {
+          filename = "image.gif";
+        }
+
+        // Adiciona a imagem no embed usando attachment://
+        embed.image = {
+          url: `attachment://${filename}`,
+        };
+
+        formData.append("file", photoBuffer, {
+          filename: filename,
+          contentType: contentType,
+        });
       }
 
-      // Adiciona a imagem no embed usando attachment://
-      embed.image = {
-        url: `attachment://${filename}`,
-      };
+      // Adiciona foto do perfil se existir
+      if (userProfilePhotoBuffer) {
+        const profilePhotoContentType = userProfilePhotoMimeType || "image/jpeg";
+        formData.append("file", userProfilePhotoBuffer, {
+          filename: "profile_photo.jpg",
+          contentType: profilePhotoContentType,
+        });
+      }
 
-      const formData = new FormData();
       formData.append("payload_json", JSON.stringify({ embeds: [embed] }));
-      formData.append("file", photoBuffer, {
-        filename: filename,
-        contentType: contentType,
-      });
 
       await axios.post(webhookUrl, formData, {
         headers: formData.getHeaders(),

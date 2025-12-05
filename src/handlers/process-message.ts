@@ -102,10 +102,25 @@ async function processMessageContent(
 
   const sender = await message.getSender();
   let username: string | undefined;
+  let userProfilePhotoBuffer: Buffer | undefined;
+  let userProfilePhotoMimeType: string | undefined;
 
   // Apenas define username se for um usuário real
   if (sender instanceof Api.User) {
     username = sender.username || sender.firstName || undefined;
+    
+    // Tenta obter a foto do perfil do usuário
+    try {
+      if (sender.photo && sender.photo instanceof Api.UserProfilePhoto) {
+        const profilePhoto = await client.downloadProfilePhoto(sender, {});
+        if (profilePhoto instanceof Buffer) {
+          userProfilePhotoBuffer = profilePhoto;
+          userProfilePhotoMimeType = "image/jpeg"; // Fotos de perfil geralmente são JPEG
+        }
+      }
+    } catch (error) {
+      // Ignora erros ao obter foto do perfil (usuário pode não ter foto)
+    }
   }
 
   // Obtém o nome do grupo
@@ -195,6 +210,8 @@ async function processMessageContent(
     photoBuffer,
     mimeType,
     groupName,
-    repliedMessageInfo
+    repliedMessageInfo,
+    userProfilePhotoBuffer,
+    userProfilePhotoMimeType
   );
 }
