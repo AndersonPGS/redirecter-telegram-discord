@@ -117,6 +117,42 @@ async function processMessageContent(
     groupName = chat.title || undefined;
   }
 
+  // Verifica se a mensagem é uma resposta e obtém informações da mensagem respondida
+  let repliedMessageInfo: { text: string; author?: string } | undefined;
+  if (message.replyTo && message.replyTo instanceof Api.MessageReplyHeader && message.replyTo.replyToMsgId && message.chatId) {
+    try {
+      const repliedMessages = await client.getMessages(message.chatId, {
+        ids: message.replyTo.replyToMsgId,
+      });
+      
+      if (repliedMessages && repliedMessages.length > 0) {
+        const repliedMsg = repliedMessages[0];
+        const repliedText = repliedMsg.message || "";
+        const repliedSender = await repliedMsg.getSender();
+        let repliedAuthor: string | undefined;
+        
+        if (repliedSender instanceof Api.User) {
+          repliedAuthor = repliedSender.username || repliedSender.firstName || undefined;
+        }
+        
+        // Limita o texto da mensagem respondida para não ficar muito longo
+        let truncatedText = repliedText.trim();
+        if (truncatedText.length > 150) {
+          truncatedText = truncatedText.substring(0, 147) + "...";
+        }
+        
+        if (truncatedText) {
+          repliedMessageInfo = {
+            text: truncatedText,
+            author: repliedAuthor,
+          };
+        }
+      }
+    } catch (error) {
+      // Ignora erros ao obter a mensagem respondida
+    }
+  }
+
   let photoBuffer: Buffer | undefined;
   let mimeType: string | undefined;
 
@@ -158,6 +194,7 @@ async function processMessageContent(
     username,
     photoBuffer,
     mimeType,
-    groupName
+    groupName,
+    repliedMessageInfo
   );
 }

@@ -8,7 +8,8 @@ export async function sendToDiscord(
   username?: string,
   photoBuffer?: Buffer,
   mimeType?: string,
-  groupName?: string
+  groupName?: string,
+  repliedMessageInfo?: { text: string; author?: string }
 ) {
   if (!webhookUrl || webhookUrl.trim() === "") {
     console.error("❌ Webhook URL não configurado para este grupo");
@@ -38,9 +39,28 @@ export async function sendToDiscord(
       },
     };
 
-    // Adiciona descrição apenas se tiver texto
+    // Monta a descrição: se for resposta, coloca a mensagem respondida primeiro (formatada como código)
+    let descriptionParts: string[] = [];
+    
+    if (repliedMessageInfo) {
+      const repliedAuthorText = repliedMessageInfo.author 
+        ? `${repliedMessageInfo.author}: ` 
+        : "";
+      // Formata como código para parecer uma citação/marcação
+      descriptionParts.push(`\`\`\`YAML\n${repliedAuthorText}${repliedMessageInfo.text}\`\`\``);
+    }
+
+    // Adiciona a mensagem atual após a citação
     if (message && message.trim()) {
-      embed.description = message;
+      if (descriptionParts.length > 0) {
+        descriptionParts.push("\n"); // Linha em branco para separar
+      }
+      descriptionParts.push(message);
+    }
+
+    // Define a descrição completa
+    if (descriptionParts.length > 0) {
+      embed.description = descriptionParts.join("");
     }
 
     // Se tiver foto, envia como multipart/form-data
