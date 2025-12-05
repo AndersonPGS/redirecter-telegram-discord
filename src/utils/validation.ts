@@ -10,9 +10,29 @@ export function isValidGroupId(id: string): boolean {
   }
 }
 
-export function hasValidGroupIds(groupIds: string[]): boolean {
-  if (!Array.isArray(groupIds) || groupIds.length === 0) {
+export function isValidWebhookUrl(url: string): boolean {
+  if (!url || url.trim() === "") {
     return false;
   }
-  return groupIds.some((id) => isValidGroupId(id));
+  try {
+    const urlObj = new URL(url);
+    return urlObj.protocol === "https:" && urlObj.hostname.includes("discord.com");
+  } catch {
+    return false;
+  }
+}
+
+export function hasValidGroupWebhooks(groupWebhooks: Record<string, string>): boolean {
+  if (!groupWebhooks || typeof groupWebhooks !== "object") {
+    return false;
+  }
+  
+  const entries = Object.entries(groupWebhooks);
+  if (entries.length === 0) {
+    return false;
+  }
+  
+  return entries.some(([groupId, webhookUrl]) => 
+    isValidGroupId(groupId) && isValidWebhookUrl(webhookUrl)
+  );
 }

@@ -32,12 +32,17 @@ TELEGRAM_API_ID=your_api_id
 TELEGRAM_API_HASH=your_api_hash
 TELEGRAM_PHONE_NUMBER=your_phone_number
 TELEGRAM_PASSWORD=your_telegram_password
-DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url
 ```
 
 2.1 Configure também o arquivo de `config.json`
 - `"defaultTitle": ""` É o título da mensagem que será enviada para o Discord
-- `"groupIds": []` Deixe como array vazio e inicialize o projeto pela primeira vez para receber os IDs dos grupos que estão enviando mensagens. Ao descobrir os IDs dos grupos que deseja monitorar, adicione-os ao array. Exemplo: `"groupIds": ["-1001234567890", "-1009876543210"]`
+- `"groupWebhooks": {}` Deixe como objeto vazio e inicialize o projeto pela primeira vez para receber os IDs dos grupos que estão enviando mensagens. Ao descobrir os IDs dos grupos que deseja monitorar, adicione-os ao objeto mapeando cada ID de grupo para seu respectivo webhook URL do Discord. Exemplo: 
+```json
+"groupWebhooks": {
+  "-1001234567890": "https://discord.com/api/webhooks/123456789/abcdefgh",
+  "-1009876543210": "https://discord.com/api/webhooks/987654321/xyzuvwst"
+}
+```
 
 ## Como obter as credenciais
 
@@ -51,7 +56,8 @@ DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/your_webhook_url
 
 1. Vá nas configurações do servidor Discord
 2. Integrações > Webhooks
-3. Crie um novo webhook e copie a URL
+3. Crie um novo webhook para cada canal que deseja receber mensagens e copie a URL
+4. Configure cada webhook URL no arquivo `config.json` mapeando para o ID do grupo correspondente
 
 ## ▶️ Uso
 

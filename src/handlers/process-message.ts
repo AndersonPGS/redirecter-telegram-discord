@@ -2,10 +2,11 @@ import { NewMessageEvent } from "telegram/events/NewMessage";
 import { Api } from "telegram/tl";
 import { TelegramClient } from "telegram";
 import { sendToDiscord } from "../functions/discord-webhook";
+import { config } from "../utils/config-loader";
 
 export async function handleProcessMessage(
   event: NewMessageEvent,
-  targetGroupIds: bigint[],
+  groupWebhookMap: Map<bigint, string>,
   client: TelegramClient
 ) {
   const message = event.message;
@@ -18,17 +19,22 @@ export async function handleProcessMessage(
 
   const chatIdBigInt = BigInt(chatId.toString());
 
-  // Verifica se o chatId está na lista de grupos monitorados
-  const isTargetGroup = targetGroupIds.some((targetGroupId) => {
-    const targetId = targetGroupId < 0n ? targetGroupId : -targetGroupId;
-    return (
+  // Busca o webhook URL correspondente ao grupo
+  let webhookUrl: string | undefined;
+  
+  for (const [groupId, url] of groupWebhookMap.entries()) {
+    const targetId = groupId < 0n ? groupId : -groupId;
+    if (
       chatIdBigInt === targetId ||
       chatIdBigInt === -targetId ||
-      chatIdBigInt === targetGroupId
-    );
-  });
+      chatIdBigInt === groupId
+    ) {
+      webhookUrl = url;
+      break;
+    }
+  }
 
-  if (isTargetGroup) {
+  if (webhookUrl) {
     // Extrai o texto completo da mensagem, incluindo links das entidades
     let messageText = message.message || "";
 
@@ -136,6 +142,7 @@ export async function handleProcessMessage(
 
     // Envia para Discord mesmo se não tiver texto, desde que tenha foto
     await sendToDiscord(
+      webhookUrl,
       messageText,
       username,
       photoBuffer,

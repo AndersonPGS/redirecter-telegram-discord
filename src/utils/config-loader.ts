@@ -7,7 +7,7 @@ export interface Config {
   };
   telegram: {
     connectionRetries: number;
-    groupIds: string[];
+    groupWebhooks: Record<string, string>;
   };
 }
 

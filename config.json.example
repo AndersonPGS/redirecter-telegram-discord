@@ -4,6 +4,9 @@
   },
   "telegram": {
     "connectionRetries": 5,
-    "groupIds": []
+    "groupWebhooks": {
+      "GroupID": "WebhookURL",
+      "GroupID2": "WebhookURL2"
+    }
   }
 }

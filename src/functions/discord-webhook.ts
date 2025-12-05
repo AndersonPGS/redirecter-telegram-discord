@@ -3,16 +3,15 @@ import FormData from "form-data";
 import { config } from "../utils/config-loader";
 
 export async function sendToDiscord(
+  webhookUrl: string,
   message: string,
   username?: string,
   photoBuffer?: Buffer,
   mimeType?: string,
   groupName?: string
 ) {
-  const discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL || "";
-
-  if (!discordWebhookUrl) {
-    console.error("❌ DISCORD_WEBHOOK_URL não configurado");
+  if (!webhookUrl || webhookUrl.trim() === "") {
+    console.error("❌ Webhook URL não configurado para este grupo");
     return;
   }
 
@@ -69,12 +68,12 @@ export async function sendToDiscord(
         contentType: contentType,
       });
 
-      await axios.post(discordWebhookUrl, formData, {
+      await axios.post(webhookUrl, formData, {
         headers: formData.getHeaders(),
       });
     } else {
       // Se não tiver foto, envia apenas o embed
-      await axios.post(discordWebhookUrl, {
+      await axios.post(webhookUrl, {
         embeds: [embed],
       });
     }

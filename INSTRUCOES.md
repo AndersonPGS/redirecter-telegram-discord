@@ -44,12 +44,12 @@ Este guia vai te ajudar a instalar e usar o bot Surebets de forma simples, mesmo
 - Clique em "Integrações" > "Webhooks"
 - Clique em "Novo Webhook" ou "Criar Webhook"
 - Copie a URL do webhook
-- Cole no arquivo `.env` no campo `DISCORD_WEBHOOK_URL`
+- **IMPORTANTE**: Você precisará criar um webhook para cada canal do Discord que deseja receber mensagens de grupos diferentes
 
 #### 3.2. Configurar o arquivo `config.json`
 
 1. Abra o arquivo `config.json` com o Bloco de Notas (ele já foi criado automaticamente)
-2. Por enquanto, deixe o `groupIds` como array vazio: `[]`
+2. Por enquanto, deixe o `groupWebhooks` como objeto vazio: `{}`
 3. Salve o arquivo
 
 ## ▶️ Como Usar
@@ -60,11 +60,16 @@ Este guia vai te ajudar a instalar e usar o bot Surebets de forma simples, mesmo
 4. O bot vai começar a descobrir os grupos automaticamente
 5. Quando aparecer mensagens com IDs de grupos, anote os IDs dos grupos que você quer monitorar
 6. Pare o bot (pressione Ctrl+C)
-7. Edite o `config.json` e adicione os IDs no array `groupIds`, exemplo:
+7. Crie um webhook no Discord para cada grupo que deseja monitorar (cada grupo pode ter seu próprio canal)
+8. Edite o `config.json` e adicione os grupos mapeando cada ID para seu webhook URL, exemplo:
    ```json
-   "groupIds": ["-1001234567890", "-1009876543210"]
+   "groupWebhooks": {
+     "-1001234567890": "https://discord.com/api/webhooks/123456789/abcdefgh",
+     "-1009876543210": "https://discord.com/api/webhooks/987654321/xyzuvwst"
+   }
    ```
-8. Execute o `run.bat` novamente
+   **Nota**: Cada grupo do Telegram terá seu próprio webhook URL, permitindo que as mensagens sejam enviadas para canais diferentes do Discord.
+9. Execute o `run.bat` novamente
 
 ## ❓ Problemas Comuns
 
@@ -84,8 +89,9 @@ Este guia vai te ajudar a instalar e usar o bot Surebets de forma simples, mesmo
 
 ### O bot não está enviando mensagens
 
-- Verifique se o webhook do Discord está correto
+- Verifique se os webhooks do Discord estão corretos no `config.json`
 - Verifique se os IDs dos grupos no `config.json` estão corretos
+- Certifique-se de que cada grupo tem seu webhook URL mapeado corretamente
 - Certifique-se de que o bot está rodando (janela aberta)
 
 ## 🛑 Como Parar o Bot

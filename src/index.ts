@@ -5,7 +5,7 @@ import { NewMessageEvent } from "telegram/events/NewMessage";
 import dotenv from "dotenv";
 
 import { config } from "./utils/config-loader";
-import { hasValidGroupIds } from "./utils/validation";
+import { hasValidGroupWebhooks } from "./utils/validation";
 import { handleDiscoverGroup } from "./handlers/discover-group";
 import { handleProcessMessage } from "./handlers/process-message";
 
@@ -21,8 +21,8 @@ if (!apiId || !apiHash || !apiPhoneNumber) {
   process.exit(1);
 }
 
-const groupIds = config.telegram.groupIds;
-const hasGroupIds = hasValidGroupIds(groupIds);
+const groupWebhooks = config.telegram.groupWebhooks;
+const hasGroupWebhooks = hasValidGroupWebhooks(groupWebhooks);
 
 const stringSession = new StoreSession("session_tg");
 
@@ -48,27 +48,37 @@ async function main() {
 
   console.log("🤖 Cliente conectado.");
 
-  if (!hasGroupIds) {
+  if (!hasGroupWebhooks) {
     console.log("");
     console.log("🔍 Descobrindo grupos...");
     console.log(
-      "⚙️  Configure groupIds em config.json após identificar os IDs."
+      "⚙️  Configure groupWebhooks em config.json após identificar os IDs."
     );
 
     client.addEventHandler(handleDiscoverGroup, new NewMessage({}));
   } else {
-    const targetGroupIds = groupIds
-      .filter((id) => id && id.trim() !== "")
-      .map((id) => BigInt(id));
+    // Cria um Map de groupId (BigInt) -> webhookUrl
+    const groupWebhookMap = new Map<bigint, string>();
+    
+    Object.entries(groupWebhooks).forEach(([groupId, webhookUrl]) => {
+      if (groupId && groupId.trim() !== "" && webhookUrl && webhookUrl.trim() !== "") {
+        try {
+          const groupIdBigInt = BigInt(groupId);
+          groupWebhookMap.set(groupIdBigInt, webhookUrl);
+        } catch (error) {
+          console.warn(`⚠️  ID de grupo inválido ignorado: ${groupId}`);
+        }
+      }
+    });
 
-    console.log(`🔍 Monitorando ${targetGroupIds.length} grupo(s):`);
-    targetGroupIds.forEach((id) => {
-      console.log(`   - ${id}`);
+    console.log(`🔍 Monitorando ${groupWebhookMap.size} grupo(s):`);
+    groupWebhookMap.forEach((webhookUrl, groupId) => {
+      console.log(`   - Grupo ${groupId} -> Webhook configurado`);
     });
 
     client.addEventHandler(
       (event: NewMessageEvent) =>
-        handleProcessMessage(event, targetGroupIds, client),
+        handleProcessMessage(event, groupWebhookMap, client),
       new NewMessage({})
     );
   }
