@@ -69,11 +69,9 @@ export async function sendToDiscord(
   }
 
   try {
-    // Formata o nome do author: "username - groupName" ou apenas um deles
+    // Author mostra apenas o nome do usuário
     let authorName = config.discord.defaultTitle;
-    if (username && groupName) {
-      authorName = `${username} - ${groupName}`;
-    } else if (username) {
+    if (username) {
       authorName = username;
     } else if (groupName) {
       authorName = groupName;
@@ -96,12 +94,21 @@ export async function sendToDiscord(
       color: number;
       author: { name: string; icon_url?: string };
       image?: { url: string };
+      footer?: { text: string };
     } = {
       color: embedColor,
       author: {
         name: authorName,
       },
     };
+
+    // Adiciona o nome do grupo no footer apenas se tiver username
+    // (para não duplicar o nome do grupo quando ele já está no author)
+    if (groupName && username) {
+      embed.footer = {
+        text: groupName,
+      };
+    }
 
     // Adiciona foto do perfil do usuário no author
     if (userProfilePhotoBuffer) {
