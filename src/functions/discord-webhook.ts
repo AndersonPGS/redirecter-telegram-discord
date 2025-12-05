@@ -2,6 +2,56 @@ import axios from "axios";
 import FormData from "form-data";
 import { config } from "../utils/config-loader";
 
+/**
+ * Gera uma cor hexadecimal única baseada no nome do usuário
+ * Sempre retorna a mesma cor para o mesmo nome
+ * Funciona com emojis e caracteres especiais
+ */
+function generateUserColor(username: string): number {
+  // Gera um hash simples do nome
+  // charCodeAt funciona com emojis e caracteres especiais (retorna o código do caractere)
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) {
+    const charCode = username.charCodeAt(i);
+    hash = charCode + ((hash << 5) - hash);
+    hash = hash & hash; // Converte para inteiro de 32 bits
+  }
+  
+  // Converte o hash em uma cor hexadecimal
+  // Usa apenas os bits mais significativos para garantir cores vibrantes
+  const color = Math.abs(hash) % 0xFFFFFF;
+  
+  // Garante que a cor não seja muito escura (mínimo de brilho)
+  // Converte RGB para HSL para verificar brilho
+  const r = (color >> 16) & 0xFF;
+  const g = (color >> 8) & 0xFF;
+  const b = color & 0xFF;
+  
+  // Calcula o brilho (luminância)
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  
+  // Se a cor for muito escura (brilho < 100), ajusta para uma cor mais clara
+  if (brightness < 100) {
+    // Aumenta o brilho mantendo a matiz
+    const factor = 100 / brightness;
+    const newR = Math.min(255, Math.round(r * factor));
+    const newG = Math.min(255, Math.round(g * factor));
+    const newB = Math.min(255, Math.round(b * factor));
+    return (newR << 16) | (newG << 8) | newB;
+  }
+  
+  // Se a cor for muito clara (brilho > 200), escurece um pouco para melhor contraste
+  if (brightness > 200) {
+    const factor = 0.7; // Escurece 30%
+    const newR = Math.round(r * factor);
+    const newG = Math.round(g * factor);
+    const newB = Math.round(b * factor);
+    return (newR << 16) | (newG << 8) | newB;
+  }
+  
+  return color;
+}
+
 export async function sendToDiscord(
   webhookUrl: string,
   message: string,
@@ -29,13 +79,25 @@ export async function sendToDiscord(
       authorName = groupName;
     }
 
+    // Gera uma cor única baseada no nome do usuário
+    // Se não tiver username válido, usa cor padrão
+    let embedColor = 3407712; // Cor padrão (verde)
+    if (username && username.trim().length > 0) {
+      // Verifica se o username tem pelo menos um caractere alfanumérico válido
+      const hasValidChars = /[a-zA-Z0-9]/.test(username);
+      if (hasValidChars) {
+        embedColor = generateUserColor(username);
+      }
+      // Se não tiver caracteres válidos (só emojis/especiais), mantém cor padrão
+    }
+
     const embed: {
       description?: string;
       color: number;
       author: { name: string; icon_url?: string };
       image?: { url: string };
     } = {
-      color: 3407712, // Cor verde para a borda do embed
+      color: embedColor,
       author: {
         name: authorName,
       },
@@ -45,20 +107,41 @@ export async function sendToDiscord(
     if (userProfilePhotoBuffer) {
       // Se tiver foto de perfil, usa como attachment
       embed.author.icon_url = "attachment://profile_photo.jpg";
-    } else if (username) {
+    } else if (username && username.trim().length > 0) {
       // Se não tiver foto, usa placeholder com iniciais do usuário
       // Remove caracteres especiais e pega as iniciais
       const initials = username
         .split(/[\s\-_]+/)
-        .map(word => word.charAt(0).toUpperCase())
-        .filter(char => /[A-Z0-9]/.test(char))
+        .map(word => {
+          // Pega o primeiro caractere alfanumérico de cada palavra
+          for (let i = 0; i < word.length; i++) {
+            const char = word[i];
+            if (/[a-zA-Z0-9]/.test(char)) {
+              return char.toUpperCase();
+            }
+          }
+          return null;
+        })
+        .filter(char => char !== null)
         .slice(0, 2)
         .join("");
       
       if (initials) {
-        // Usa UI Avatars API para gerar avatar com iniciais
+        // Verifica se o username tem caracteres válidos para gerar cor
+        const hasValidChars = /[a-zA-Z0-9]/.test(username);
+        let colorHex = "3407712"; // Cor padrão (verde)
+        
+        if (hasValidChars) {
+          // Gera a cor única do usuário para usar no placeholder
+          const userColor = generateUserColor(username);
+          // Converte a cor para hexadecimal sem o prefixo 0x
+          colorHex = userColor.toString(16).padStart(6, '0');
+        }
+        
+        // Usa UI Avatars API para gerar avatar com iniciais e cor única do usuário
+        // encodeURIComponent trata emojis e caracteres especiais corretamente
         const encodedName = encodeURIComponent(username);
-        embed.author.icon_url = `https://ui-avatars.com/api/?name=${encodedName}&size=128&background=random&color=fff&bold=true&length=${initials.length}`;
+        embed.author.icon_url = `https://ui-avatars.com/api/?name=${encodedName}&size=128&background=${colorHex}&color=fff&bold=true&length=${initials.length}`;
       }
     }
 
