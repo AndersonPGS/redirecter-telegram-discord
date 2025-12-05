@@ -8,6 +8,7 @@ import { config } from "./utils/config-loader";
 import { hasValidGroupWebhooks } from "./utils/validation";
 import { handleDiscoverGroup } from "./handlers/discover-group";
 import { handleProcessMessage } from "./handlers/process-message";
+import { createQueueManager, QueueManager } from "./utils/queue-manager";
 
 dotenv.config();
 
@@ -76,9 +77,13 @@ async function main() {
       console.log(`   - Grupo ${groupId} -> Webhook configurado`);
     });
 
+    // Inicializa o gerenciador de filas para garantir ordem por grupo
+    const queueManager = createQueueManager();
+    console.log("📦 Sistema de filas por grupo ativado (ordem garantida por grupo)");
+
     client.addEventHandler(
       (event: NewMessageEvent) =>
-        handleProcessMessage(event, groupWebhookMap, client),
+        handleProcessMessage(event, groupWebhookMap, client, queueManager),
       new NewMessage({})
     );
   }
